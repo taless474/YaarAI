@@ -1,4 +1,3 @@
-# %%
 """
 Normalize directive framing in bayt_hints.
 
@@ -21,16 +20,13 @@ Output:
   data/annotations/bayt_annotations_v1_3.jsonl
 """
 
-# %%
 import json
 from pathlib import Path
 import copy
 
-# %%
 IN_PATH = Path("data/annotations/bayt_annotations_v1_2.jsonl")
 OUT_PATH = Path("data/annotations/bayt_annotations_v1_3.jsonl")
 
-# %%
 DIRECTIVE_PREFIXES = (
     "دعوت به",
     "توصیه به",
@@ -40,9 +36,7 @@ DIRECTIVE_PREFIXES = (
 )
 
 
-# %%
 
-# %%
 def normalize_hint(hint: str) -> str | None:
     """
     If hint starts with a directive prefix, remove it.
@@ -55,7 +49,6 @@ def normalize_hint(hint: str) -> str | None:
     return None
 
 
-# %%
 def main():
     assert IN_PATH.exists(), f"Input file not found: {IN_PATH}"
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -92,6 +85,5 @@ def main():
     print(f"Normalized {changed} bayt_hints")
 
 
-# %%
 if __name__ == "__main__":
     main()

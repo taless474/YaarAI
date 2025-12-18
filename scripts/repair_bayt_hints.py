@@ -1,37 +1,28 @@
-# %% [markdown]
 # scripts/repair_bayt_hints.py
 # Repair overlong or interpretive bayt_hints (v1.1)
 
-# %%
 import json
 import time
 from pathlib import Path
 
-# %%
 from openai import OpenAI, RateLimitError
 
-# %%
 from prompts.repair_prompts_v1 import (
     REPAIR_SYSTEM_PROMPT,
     REPAIR_BAYT_HINT_PROMPT,
 )
 
-# %%
 MODEL_NAME = "gpt-4.1"
 
-# %%
 IN_PATH = Path("data/annotations/bayt_annotations_v1.jsonl")
 OUT_PATH = Path("data/annotations/bayt_annotations_v1_1.jsonl")
 OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-# %%
 RAW_PATH = Path("data/raw/ghazals_with_insight.jsonl")
 
-# %%
 client = OpenAI()
 
 
-# %%
 def load_raw_text():
     raw = {}
     with RAW_PATH.open("r", encoding="utf-8") as f:
@@ -41,7 +32,6 @@ def load_raw_text():
     return raw
 
 
-# %%
 def call_gpt(prompt: str) -> str:
     while True:
         try:
@@ -60,7 +50,6 @@ def call_gpt(prompt: str) -> str:
             time.sleep(1.0)
 
 
-# %%
 def main():
     raw_text = load_raw_text()
 
@@ -118,6 +107,5 @@ def main():
             time.sleep(0.25)
 
 
-# %%
 if __name__ == "__main__":
     main()

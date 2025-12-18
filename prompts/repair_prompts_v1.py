@@ -22,7 +22,6 @@ Rules:
 - Be conservative: remove content rather than invent new content.
 """
 
-# %%
 REPAIR_BAYT_HINT_PROMPT = """\
 A bayt from Hafez already has a semantic label (bayt_hint).
 The label is slightly too long or interpretive.

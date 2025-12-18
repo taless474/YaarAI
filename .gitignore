@@ -39,3 +39,7 @@ data/annotations/*.jsonl
 # =========================
 .env
 .env.*
+
+
+scripts/*.ipynb
+prompts/*.ipynb
