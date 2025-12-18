@@ -1,12 +1,42 @@
+# =========================
 # Python
+# =========================
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
 
-# Jupyter
-.ipynb_checkpoints/
+# =========================
+# Virtual environments
+# =========================
+.venv/
+venv/
+env/
 
-# OS
+# =========================
+# OS / Editor
+# =========================
 .DS_Store
-
-# Editor
 .vscode/
+
+# =========================
+# Jupyter (notebooks later)
+# =========================
+.ipynb_checkpoints/
+*.ipynb
+
+# =========================
+# Data artifacts
+# =========================
+# Logs and intermediate outputs
+data/logs/
+data/**/logs/
+data/**/tmp/
+
+# Derived / generated annotation outputs
+data/annotations/*.jsonl
+
+# =========================
+# Credentials / secrets
+# =========================
+.env
+.env.*
