@@ -19,10 +19,9 @@ env/
 .vscode/
 
 # =========================
-# Jupyter (notebooks later)
+# Jupyter
 # =========================
 .ipynb_checkpoints/
-*.ipynb
 
 # =========================
 # Data artifacts

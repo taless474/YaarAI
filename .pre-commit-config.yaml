@@ -1,0 +1,13 @@
+repos:
+- repo: https://github.com/mwouts/jupytext
+  rev: v1.18.1
+  hooks:
+  - id: jupytext
+    args: [--sync]
+    files: ^notebooks/.*\.ipynb$
+
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+  - id: end-of-file-fixer
+  - id: trailing-whitespace
