@@ -1,180 +1,186 @@
-    # YaarAI — Semantic Hafez Dataset
 
-    YaarAI is a curated semantic annotation dataset for the poetry of Hafez,
-    designed to support high-fidelity embedding-based retrieval, semantic search,
-    and contextual analysis.
+# 🌙 YaarAI — Fal‑e‑Hafez (v1.0)
 
-    The project focuses on semantic structure, not poetry generation or stylistic
-    imitation. All annotations are grounded in authentic Hafez bayts and validated
-    through a conservative, engineering-style pipeline.
+YaarAI is a **semantic Fal‑e‑Hafez system** focused on *recognition, restraint, and silence*.
 
-    The dataset will be published on Hugging Face for public research and
-    educational use.
+The system **never generates poetry** and **never explains Hafez**.
+It retrieves an **authentic Hafez bayt** and, only when justified, adds a **minimal orientation line**.
 
-    --------------------------------------------------------------------
+> اصل کار اینه: اگر چیزی برای گفتن نیست، بیت گویاست.
 
-    WHAT THIS REPOSITORY CONTAINS
+---
 
-    Source material:
-    - ~4,200 authentic Hafez Ghazal bayts
-    - Each bayt includes:
-      * poem_id
-      * bayt_id
-      * text (two hemistichs combined)
-      * bayt_prose — modern Persian explanation of the bayt
-      * ghazal_prose — modern Persian explanation of the whole ghazal
+## ✨ What YaarAI Does
 
-    Prose explanations are derived from Ganjoor and are used only as semantic
-    grounding.
+1. Accepts a short Persian question (usually about love / yaar).
+2. Retrieves **one real Hafez bayt** from a canonical dataset.
+3. Optionally adds:
+   - an **Affect** (حال)
+   - a **Lens** (orientation)
+4. Outputs a compact Fal in a strict, deterministic format.
 
-    --------------------------------------------------------------------
+No advice.
+No reassurance.
+No interpretation of symbols.
 
-    SEMANTIC ANNOTATIONS (CORE CONTRIBUTION)
+---
 
-    Ghazal axis (ghazal_axis):
-    A short abstract noun phrase describing the central semantic axis of the ghazal.
+## 🧠 Core Design Principles
 
-    Constraints:
-    - Persian only
-    - One abstract noun phrase
-    - No verbs
-    - No emotional words
-    - Applicable across multiple bayts
+- **Bayt is the oracle**
+- Meaning is **never added**
+- Silence is the default
+- Orientation is rare and descriptive
+- Randomness is *presentation‑only*, never semantic
 
-    Example:
-    "ghazal_axis": "تمایز حقیقت و ظاهر"
+---
 
-    --------------------------------------------------------------------
+## 📦 Project Structure
 
-    Bayt hint (bayt_hint):
-    A short noun phrase describing what is happening in the bayt.
+```text
+YaarAI/
+├── data/
+│   ├── datasets/            # canonical bayt JSONL
+│   └── embeddings/          # precomputed vectors (offline)
+│
+├── notebooks/               # exploration only (not imported)
+│
+├── scripts/
+│   ├── language/
+│   │   ├── affect_variants.py
+│   │   ├── lens_soft.py
+│   │   └── lens_hard.py
+│   │
+│   ├── config.py            # lens sets, defaults
+│   ├── types.py             # BaytRow contract
+│   ├── fal_assembly.py      # core Fal logic
+│   ├── retrieval.py         # embedding‑based retrieval (offline)
+│   ├── cli.py               # command‑line interface
+│   └── test_fal.py          # sanity test
+│
+└── README.md
+```
 
-    Constraints:
-    - Persian only
-    - Neutral and descriptive
-    - No verbs
-    - No explanation or moralizing
-    - No interpretive commentary
+---
 
-    Example:
-    "bayt_hint": "درخواست جام از ساقی"
+## 🧾 Data Contract
 
-    --------------------------------------------------------------------
+Each bayt is represented as:
 
-    Affect (affect):
-    A controlled vocabulary capturing directly present emotion, if any.
-    Each bayt may have zero, one, or two affects.
+```python
+BaytRow = {
+    "poem_id": int,
+    "bayt_id": int,
+    "text": str,          # full couplet
+    "affect": list[str],  # may be empty
+    "lens": str | None,
+}
+```
 
-    Affect vocabulary (v1.0):
-    اندوه، امید، ناامیدی، حیرت، شوق، حسرت، آرامش، بی‌قراری
+Embeddings are **not** part of this contract.
+They belong strictly to retrieval.
 
-    Notes:
-    - Empty list is allowed
-    - Affect is annotated conservatively
-    - No inferred or speculative emotion
+---
 
-    --------------------------------------------------------------------
+## 🎭 Affect (حال)
 
-    ANNOTATION METHODOLOGY
+Affect is descriptive only.
 
-    Model:
-    - GPT-4.1 (via OpenAI API)
+- Closed vocabulary (e.g. حسرت، بی‌قراری، اندوه، شوق، حیرت…)
+- Short, modern Persian sentences
+- One sentence per affect
+- No directives, no therapy language
 
-    Decoding:
-    - Deterministic (temperature = 0, fixed seed)
+---
 
-    Pipeline characteristics:
-    - Resume-safe
-    - Rate-limit aware
-    - Schema-validated
-    - One-time preprocessing (not a live service)
+## 🔍 Lens (Orientation)
 
-    Prompting strategy:
-    - Persian prompts for semantic abstraction
-    - English prompts for constrained repair and normalization
-    - Persian-only outputs
+Lenses are **rare** and structural.
 
-    No poetry generation occurs at any stage.
+### Soft Lenses (lean, do not conclude)
+- انتظار
+- فاصله
+- گلایه
+- پذیرش
+- حیرت معرفتی
 
-    --------------------------------------------------------------------
+### Hard Lenses (assertive, restrained)
+- ریا
+- ناپایداری جهان
 
-    REPAIR AND CURATION STEP (BAYT ANNOTATIONS v1.1)
+Exactly **one** lens sentence may appear.
 
-    During validation, a subset of bayt-level annotations showed interpretive or
-    didactic drift (for example phrases starting with "توصیه به ..." or
-    "پند اخلاقی ...").
+---
 
-    A constrained repair pass was applied:
-    - Only bayts with long hints (more than 8 tokens) were eligible
-    - A deterministic repair prompt removed advice, moralizing, and explanatory tone
-    - Core semantic content was preserved
-    - No new meaning was introduced
+## 🧩 Assembly Contract
 
-    Repaired entries are explicitly marked in metadata:
-    "repair": true
-    "repair_rule": "bayt_hint_len>8"
+Output order is **always bayt‑first**.
 
-    Original annotations are preserved.
+| Case | Affect | Lens | Output |
+|----|----|----|----|
+| A | ✓ | ✗ | Bayt + Affect |
+| B | ✓ | ✓ | Bayt + Affect + Lens |
+| C | ✗ | ✗ | Bayt + **بیت گویاست** |
+| D | ✗ | ✓ | Bayt + Lens |
 
+If nothing fires, silence is explicit.
 
-    --------------------------------------------------------------------
+---
 
-    INTENDED USE
+## ▶️ Running a Test
 
-    This dataset is designed for:
-    - Semantic embeddings
-    - Cosine-similarity retrieval
-    - Fal-e-Hafez systems
-    - Clustering and thematic analysis
-    - Contextual exploration of Hafez’s poetry
+From the repo root:
 
-    It is NOT intended for:
-    - Poetry generation
-    - Paraphrasing Hafez
-    - Stylistic imitation
+```bash
+python -m scripts.test_fal
+```
 
-    --------------------------------------------------------------------
+This validates Fal assembly without retrieval.
 
-    CURRENT STATUS
+---
 
-    - Ghazal axes validated
-    - Bayt hints validated
-    - Affect distribution validated
-    - Semantic layer frozen
+## 🖥 CLI Usage
 
-    Next step:
-    - Build embeddings (e.g. bge-m3)
-    - Evaluate whether a meaningful Hafez semantic space emerges
-    - Publish the dataset on Hugging Face
+```bash
+python -m scripts.cli "سؤال من"
+```
 
-    --------------------------------------------------------------------
+At v1.0, the CLI supports:
+- Fal assembly
+- Dataset loading
 
-    DESIGN PHILOSOPHY
+Embedding‑based retrieval is wired but requires
+precomputed vectors in `data/embeddings/`.
 
-    - Accuracy over creativity
-    - Restraint over verbosity
-    - Consistency over novelty
-    - Human judgment over blind automation
+---
 
-    The goal is not to reinterpret Hafez, but to index meaning without distorting it.
+## 🚧 What v1.0 Freezes
 
-    --------------------------------------------------------------------
+Frozen:
+- Fal assembly logic
+- Affect & Lens language
+- Output contract
+- Bayt‑first rendering
 
-    LICENSE AND ATTRIBUTION
+Not frozen:
+- Embedding model choice
+- Retrieval strategy
+- UI layer (CLI vs API)
 
-    - Hafez’s poetry: public domain
-    - Prose explanations: derived from Ganjoor (used for semantic grounding only)
-    - Semantic annotations: released for research and educational use
+---
 
-    License to be specified before Hugging Face release.
+## 📜 License
 
-    --------------------------------------------------------------------
+MIT (planned)
 
-    CITATION
+---
 
-    If you use this dataset, please cite:
+## 🌿 Closing Note
 
-    YaarAI — Semantic Hafez Dataset
-    Curated semantic annotations for Persian classical poetry
+YaarAI is not a chatbot.
+It is a **Fal engine**.
 
-    Full citation will be added with the Hugging Face release.
+Sometimes it speaks.
+Often, it stays quiet.
+
+That quiet is intentional.

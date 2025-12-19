@@ -1,3 +1,0 @@
-formats = "ipynb,py:percent"
-notebook_extensions = ".ipynb"
-script_extensions = ""
