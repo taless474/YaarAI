@@ -39,18 +39,18 @@ GHAZAL_AXIS_PROMPT = """\
 - از فعل استفاده نکن.
 
 ابیات:
-{all_bayts}
+{all_beyts}
 
 شرح غزل:
 {ghazal_prose}
 """
 
-BAYT_PROMPT = """\
+BEYT_PROMPT = """\
 این یک بیت از حافظ با شرح نثری آن است.
 
 وظیفه: استخراج دو برچسب معنایی
 
-1) bayt_hint
+1) beyt_hint
 - عبارت اسمی کوتاه
 - توصیف آنچه در این بیت رخ می‌دهد
 - بدون فعل
@@ -67,14 +67,14 @@ BAYT_PROMPT = """\
 {ghazal_axis}
 
 بیت:
-{bayt_text}
+{beyt_text}
 
 شرح بیت:
-{bayt_prose}
+{beyt_prose}
 
 خروجی را دقیقاً با این قالب JSON و بدون متن اضافی برگردان:
 {{
-  "bayt_hint": "",
+  "beyt_hint": "",
   "affect": []
 }}
 """

@@ -8,7 +8,7 @@ from scripts.language.lens_hard import LENS_VARIANTS_HARD
 def main():
     row = {
         "poem_id": 1,
-        "bayt_id": 1,
+        "beyt_id": 1,
         "text": "واعظان کاین جلوه در محراب و منبر می‌کنند / چون به خلوت می‌روند آن کار دیگر می‌کنند",
         "affect": ["حیرت"],
         "lens": "ریا",

@@ -14,3 +14,5 @@ HARD_LENSES = {
 }
 
 DEFAULT_MARKER = "بیت گویاست"
+
+ALL_LENSES = tuple(sorted(SOFT_LENSES | HARD_LENSES))

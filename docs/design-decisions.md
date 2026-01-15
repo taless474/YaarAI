@@ -1,156 +1,59 @@
-# Design Decisions
+# Design decisions
 
-This document records the major architectural and semantic decisions behind YaarAI.
-Each decision is intentional and grounded in the constraints described in `docs/story.md`.
+This document records the key architectural decisions behind **YaarAI** (v1).
+Goal: a Fal-e-Hafez experience that is authentic, reproducible, and semantically grounded without “inventing” Hafez.
 
-The guiding principle throughout the system is restraint: computation is used where it preserves meaning, and constrained where it would collapse ambiguity.
+## Retrieval-only: never generate Hafez
+- YaarAI returns **only authentic Hafez beyts** from the curated corpus.
+- The system does **not** generate new poetry or stylistic imitations.
 
----
+**Why:** preserves authenticity, ambiguity, and trust.
 
-## Proposed semantic retrieval method
+## Beyt is the atomic unit
+- The retrieval unit is the **beyt** (two **mesra**).
+- Ghazals can shift stance/emotion across beyts, so beyt-level retrieval stays precise.
 
-YaarAI implements a constrained semantic retrieval method designed specifically for Fal-e-Hafez.
+## Embeddings are used for proximity, not reasoning
+- Embeddings are a **similarity heuristic** to propose candidate beyts.
+- They do not “understand” intent; they provide neighborhood structure.
 
-The system is structured around three explicitly separated semantic layers:
+## Semantic orientation is metadata, computed offline
+- YaarAI uses conservative, reviewable annotations as metadata:
+  - `ghazal_axis` (ghazal-level orientation)
+  - `beyt_hint` (a phrase on beyt meaning)
+  - `affect` (closed vocabulary of 8)
+  - `lens` (secondary framing axis; 7 lenses)
 
-1. **Textual unit (bayt)**
-   The atomic unit of retrieval is the individual bayt. Each bayt is treated as a self-contained semantic moment rather than as part of a linear narrative.
+**Why:** stable behavior, reproducible outputs, fewer runtime surprises.
 
-2. **Semantic proximity (embeddings)**
-   Bayts are embedded into a shared vector space. These embeddings are used to estimate proximity between bayts themselves, serving as a similarity heuristic rather than an interpretation of user intent or meaning.
+## Closed vocabulary for affect
+- Affect labels are restricted to an approved set.
+- This prevents label drift and keeps evaluation meaningful.
 
-   At the current stage, retrieval is driven primarily by bayt-to-bayt similarity. User queries, when present, act as a coarse selector or lens rather than as a fully modeled semantic target.
+## Ghazal-level signals are not embedded into retrieval probes
+- Diagnostics showed that injecting ghazal identity into probes can inflate cohesion metrics.
+- Cohesion tests are run on representations that avoid leaking ghazal membership.
 
-3. **Semantic orientation (metadata)**
-   Each bayt is annotated offline with conservative semantic metadata, including:
-   - affect (emotional register)
-   - ghazal_axis (thematic or ethical orientation of the ghazal)
+## Lenses: a second axis beyond affect
+- Lenses capture interpretive framing (e.g., stance/relational structure) that affect alone misses.
+- Current lenses are validated; supervised calibration is planned after expanding labels.
 
-   These annotations function as semantic constraints or priors during retrieval, not as prediction targets.
+## Product-first: keep v1 scripts working
+- Core scripts such as `fal_assembly.py` and `retrieval.py` remain the stable execution path.
+- Refactors happen only when they do not break the working product.
 
-At query time, the system:
-- embeds bayts into a shared semantic space;
-- selects candidate bayts based on proximity;
-- optionally filters or re-ranks candidates using affect and ghazal_axis metadata;
-- returns a single authentic bayt, optionally accompanied by a minimal affective cue.
+## Licensing boundary
+- Repository **code** is MIT-licensed.
+- Derived data artifacts follow the upstream dataset license (**CC BY-NC 4.0**) with attribution.
 
-No generative step is involved in meaning formation. All semantics are retrieved or selected from curated structures.
+## Evaluation and diagnostics summary
+We track a small set of checks to ensure the embedding space and axes are usable:
 
----
-
-## Retrieval-only; no poetry generation
-
-**Decision**
-YaarAI retrieves authentic Hafez bayts only; it never generates poetry or stylistic imitations.
-
-**Rationale**
-Hafez’s poetry relies on implication, metaphor, and ambiguity. Generative models tend to resolve uncertainty by producing explicit continuations, which flattens ethical and emotional stance. Retrieval preserves the original text and keeps interpretation with the reader.
-
-**Tradeoff**
-- Limits expressive flexibility.
-- Prevents creative reformulation.
-
----
-
-## Single-poet corpus
-
-**Decision**
-The corpus is restricted to Hafez only.
-
-**Rationale**
-Hafez’s worldview toward love, devotion, and responsibility is internally consistent and distinct. Mixing poets collapses worldview into surface similarity and erases ethical posture.
-
-**Tradeoff**
-- Smaller corpus.
-- Reduced stylistic diversity.
-
----
-
-## Bayt-level retrieval with ghazal-level orientation
-
-**Decision**
-Bayts are the retrieval unit. Ghazal-level semantics are represented through explicit `ghazal_axis` annotations rather than ghazal text embeddings.
-
-**Rationale**
-Ghazals establish an ethical or emotional field rather than a linear narrative. Embedding full ghazals over-smooths meaning and reduces precision. Using ghazal axes as metadata preserves worldview without sacrificing bayt-level specificity.
-
-**Tradeoff**
-- Requires careful manual definition of axes.
-- Does not capture themes outside the predefined set.
-
----
-
-## Offline semantic annotation
-
-**Decision**
-Affect and ghazal_axis annotations are created offline and stored in the dataset.
-
-**Rationale**
-Offline annotation allows conservative, reviewable semantics and avoids runtime drift. It keeps system behavior stable and inspectable.
-
-**Tradeoff**
-- Manual curation effort.
-- Slower semantic iteration.
-
----
-
-## Optional affective cues
-
-**Decision**
-The system may optionally attach a short affective cue to the returned bayt.
-
-**Rationale**
-The cue is intended to shape how the verse lingers, similar to the aftertone of a song, without explaining or summarizing the poem.
-
-**Constraints**
-- The cue must be removable without loss of meaning.
-- It must not restate the bayt.
-- It must not introduce advice or interpretation.
-
----
-
-## No prose paraphrase or explanation
-
-**Decision**
-The system never paraphrases or explains bayts in prose.
-
-**Rationale**
-Prose explanation collapses ethical stance into surface description. In Hafez, meaning is often asserted implicitly and cannot be preserved through paraphrase.
-
----
-
-## Preservation of form
-
-**Decision**
-Text normalization is conservative; form-level distinctions are preserved where possible.
-
-**Rationale**
-Some bayts encode meaning through repetition, spacing, or syntactic boundary. Aggressive normalization erases form-dependent semantics.
-
----
-
-## Probabilistic restraint
-
-**Decision**
-Non-essential additions, such as affective cues, are applied probabilistically.
-
-**Rationale**
-Predictability undermines the experience of encounter. Controlled randomness preserves freshness without introducing chaos.
-
----
-
-## Explicit non-goals
-
-YaarAI explicitly does not attempt to:
-- advise, predict, or guide users;
-- resolve ambiguity;
-- optimize engagement;
-- learn from user input online.
-
-These are design boundaries, not missing features.
-
----
-
-## Summary
-
-The central design question of YaarAI is not model selection but boundary selection: deciding where computation preserves meaning and where it would destroy it. All decisions in this document follow from that constraint.
+- **Neighborhood sanity checks:** nearest-neighbor samples should be semantically plausible to a Persian reader.
+- **Ghazal cohesion:** measure how often kNN neighbors share the same `poem_id` vs a random baseline (used as a diagnostic, not a goal).
+  - k=20: mean **0.1413**, median **0.10** vs random baseline **0.00217** (~65× above random).
+  - Probe variants showed near-zero cohesion without ghazal leakage; including `ghazal_axis` inflates cohesion, so we exclude it in cohesion diagnostics.
+- **Affect kNN coherence:** quantify whether neighbors share affect labels above chance; use failures to refine vocabulary/labels.
+- **Affect centroid diagnostics:** compute per-affect centroids and inspect overlap/collapse to detect indistinguishable affects.
+- **UMAP sweeps:** parameter sweeps to ensure visual structure is not cherry-picked (UMAP is a visualization aid, not proof).
+- **Lens confidence via margin:** track `best` vs `second` lens score margin to estimate coverage/ambiguity and prioritize manual labeling.

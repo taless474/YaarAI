@@ -22,24 +22,24 @@ Rules:
 - Be conservative: remove content rather than invent new content.
 """
 
-REPAIR_BAYT_HINT_PROMPT = """\
-A bayt from Hafez already has a semantic label (bayt_hint).
+REPAIR_BEYT_HINT_PROMPT = """\
+A beyt from Hafez already has a semantic label (beyt_hint).
 The label is slightly too long or interpretive.
 
 Your task:
-Rewrite the bayt_hint so that it is:
+Rewrite the beyt_hint so that it is:
 - a neutral noun phrase
 - shorter if possible
 - non-didactic
 - non-explanatory
 - faithful to the original meaning
 
-Original bayt text (for grounding only):
-{bayt_text}
+Original beyt text (for grounding only):
+{beyt_text}
 
-Original bayt_hint:
+Original beyt_hint:
 {old_hint}
 
-Return ONLY the repaired bayt_hint.
+Return ONLY the repaired beyt_hint.
 Do not include explanations.
 """

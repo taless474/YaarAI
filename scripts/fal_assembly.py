@@ -1,81 +1,98 @@
 # scripts/fal_assembly.py
+from __future__ import annotations
 
+from typing import Any, Mapping, Sequence
 import random
-from typing import Optional
 
-from .types import BaytRow
-from .config import SOFT_LENSES, HARD_LENSES, DEFAULT_MARKER
-
-
-def choose_variant(options):
-    return random.choice(options)
+from .language.affect_variants import AFFECT_VARIANTS
+from .language.lens_soft import LENS_VARIANTS_SOFT
+from .language.lens_hard import LENS_VARIANTS_HARD
 
 
-def render_affect_block(affect, affect_variants):
+# ---------------------------------------------------------------------
+# Presentation flag (controlled by CLI)
+# ---------------------------------------------------------------------
+INTERPRET: bool = True
+
+
+def set_interpret(value: bool) -> None:
+    """Enable / disable interpretation mode (presentation only)."""
+    global INTERPRET
+    INTERPRET = bool(value)
+
+
+# ---------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------
+def _pick_variant(variants: Mapping[str, Sequence[str]], key: str) -> str | None:
+    vals = variants.get(key)
+    if not vals:
+        return None
+    return random.choice(list(vals)).strip()
+
+
+def _should_show_soft_lens(prob: float = 0.30) -> bool:
+    return random.random() < prob
+
+
+# ---------------------------------------------------------------------
+# Public API (DO NOT CHANGE SIGNATURE)
+# ---------------------------------------------------------------------
+def assemble_fal(beyt: Mapping[str, Any]) -> str:
     """
-    Returns a single line combining affect sentences,
-    or None if affect is empty.
+    Beyt-first, silence-aware Fal assembly.
+
+    Rules:
+    - Beyt text is always shown
+    - Affect:
+        - if INTERPRET is False → may show affect line
+        - if INTERPRET is True  → affect becomes the interpretation line
+    - Lens:
+        - hard lens → shown deterministically (if present)
+        - soft lens → shown with ~30% probability (if present)
+    - No hardcoded language strings
     """
-    lines = []
-    for a in affect:
-        opts = affect_variants.get(a)
-        if opts:
-            lines.append(choose_variant(opts))
-    return " ".join(lines) if lines else None
 
+    lines: list[str] = []
 
-def render_lens_block(
-    lens: Optional[str],
-    lens_soft,
-    lens_hard,
-):
-    """
-    Returns one lens sentence, or None.
-    """
-    if lens in HARD_LENSES:
-        return choose_variant(lens_hard[lens])
-    if lens in SOFT_LENSES:
-        return choose_variant(lens_soft[lens])
-    return None
+    # -----------------------------------------------------------------
+    # 1) Beyt (always)
+    # -----------------------------------------------------------------
+    text = str(beyt.get("text", "")).strip()
+    if text:
+        lines.append(text)
 
+    # -----------------------------------------------------------------
+    # 2) Affect handling
+    # -----------------------------------------------------------------
+    affects = beyt.get("affect") or []
+    if INTERPRET and isinstance(affects, list) and affects:
+        affect_key = str(affects[0]).strip()
+        affect_line = _pick_variant(AFFECT_VARIANTS, affect_key)
+        if affect_line:
+            lines.append(affect_line)
 
-def assemble_fal(
-    row: BaytRow,
-    *,
-    affect_variants,
-    lens_soft,
-    lens_hard,
-) -> str:
-    """
-    Assembly contract (bayt-first):
+    # -----------------------------------------------------------------
+    # 3) Lens handling
+    # -----------------------------------------------------------------
+    lens = beyt.get("lens")
+    if lens:
+        lens_key = str(lens).strip()
 
-    Case A: affect ≠ ∅, lens = None
-      → Bayt + Affect
+        # Hard lens: deterministic
+        if lens_key in LENS_VARIANTS_HARD:
+            lens_line = _pick_variant(LENS_VARIANTS_HARD, lens_key)
+            if lens_line:
+                lines.append(lens_line)
 
-    Case B: affect ≠ ∅, lens ≠ None
-      → Bayt + Affect + Lens
+        # Soft lens: probabilistic (~30%)
+        elif lens_key in LENS_VARIANTS_SOFT:
+            if _should_show_soft_lens(0.30):
+                lens_line = _pick_variant(LENS_VARIANTS_SOFT, lens_key)
+                if lens_line:
+                    lines.append(lens_line)
 
-    Case C: affect = ∅, lens = None
-      → Bayt + DEFAULT_MARKER  (بیت گویاست)
-
-    Case D: affect = ∅, lens ≠ None
-      → Bayt + Lens
-    """
-    bayt = row["text"].strip()
-    affect = row.get("affect") or []
-    lens = row.get("lens")
-
-    blocks = [bayt]
-
-    affect_line = render_affect_block(affect, affect_variants)
-    if affect_line:
-        blocks.append(affect_line)
-
-    lens_line = render_lens_block(lens, lens_soft, lens_hard)
-    if lens_line:
-        blocks.append(lens_line)
-
-    if not affect and lens is None:
-        blocks.append(DEFAULT_MARKER)
-
-    return "\n".join(blocks)
+    # -----------------------------------------------------------------
+    # Final output
+    # -----------------------------------------------------------------
+    return "\n".join([ln for ln in lines if ln.strip()]).strip()

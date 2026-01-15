@@ -68,18 +68,18 @@ def main():
         poems[r["poem_id"]].append(r)
 
     with OUT_PATH.open("a", encoding="utf-8") as out:
-        for poem_id, bayts in poems.items():
+        for poem_id, beyts in poems.items():
             if poem_id in done_poems:
                 continue
 
-            all_bayts_text = "\n".join(
-                f"- {b['text']}" for b in bayts
+            all_beyts_text = "\n".join(
+                f"- {b['text']}" for b in beyts
             )
 
-            ghazal_prose = bayts[0]["insight"]["ghazal_summary"]
+            ghazal_prose = beyts[0]["insight"]["ghazal_summary"]
 
             prompt = GHAZAL_AXIS_PROMPT.format(
-                all_bayts=all_bayts_text,
+                all_beyts=all_beyts_text,
                 ghazal_prose=ghazal_prose,
             )
 
